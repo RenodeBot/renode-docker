@@ -1,12 +1,15 @@
 # This docker configuration file lets you easily run Renode and simulate embedded devices
 # on an x86 desktop or laptop. The framework can be used for debugging and automated testing.
-FROM ubuntu:20.04
+FROM ubuntu:18.04
 
 LABEL maintainer="Piotr Zierhoffer <pzierhoffer@antmicro.com>"
 
 # Install main dependencies and some useful tools
+RUN apt-get update && apt-get install -y --no-install-recommends gnupg ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+RUN echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic/snapshots/5.20.1.19 main" | tee /etc/apt/sources.list.d/mono-official-stable.list
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates sudo wget && rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends mono-complete ca-certificates sudo wget && rm -rf /var/lib/apt/lists/*
 
 # Set up users
 RUN sed -i.bkp -e \
@@ -34,6 +37,7 @@ RUN wget https://github.com/renode/renode/releases/download/v${RENODE_VERSION}/r
     apt-get install -y --no-install-recommends ./renode_${RENODE_VERSION}_amd64.deb python3-dev && \
     rm ./renode_${RENODE_VERSION}_amd64.deb && \
     rm -rf /var/lib/apt/lists/*
+RUN pip3 install setuptools --no-cache-dir
 RUN pip3 install -r /opt/renode/tests/requirements.txt --no-cache-dir
 USER developer
 CMD renode
